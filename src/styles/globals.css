@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #__next{
+    min-height: 100vh;
+    height: 100%;
+}
+
+body {
+    background: url("https://www.whatspaper.com/wp-content/uploads/2021/10/hollow-knight-wallpaper-whatspaper-4.jpg");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif !important;
+}
+

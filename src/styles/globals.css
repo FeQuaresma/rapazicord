@@ -12,7 +12,7 @@ body {
     background: url("https://www.whatspaper.com/wp-content/uploads/2021/10/hollow-knight-wallpaper-whatspaper-4.jpg");
     background-position: center;
     background-repeat: no-repeat;
-    background-size: cover;
+    background-size: auto;
 }
 
 * {
@@ -22,3 +22,8 @@ body {
     font-family: 'Poppins', sans-serif !important;
 }
 
+@media (min-width: 340px) { 
+    body{
+        background-size: cover;
+} 
+}

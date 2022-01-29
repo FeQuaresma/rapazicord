@@ -1,7 +1,7 @@
 module.exports = {
   content: [
     './src/components/**/*.jsx',
-    './src/pages/**/*.jsx'
+    './src/pages/**/*.jsx',
   ],
   important: true,
   jit: true,
@@ -9,4 +9,4 @@ module.exports = {
     extend: {},
   },
   plugins: [],
-}
+};

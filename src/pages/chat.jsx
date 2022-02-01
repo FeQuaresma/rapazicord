@@ -1,30 +1,33 @@
+import { createClient } from '@supabase/supabase-js';
 import Head from 'next/head';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Layout, Header } from '../components/shared';
 import lTrim from '../components/shared/ltrim';
 
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzY3Mjg4NCwiZXhwIjoxOTU5MjQ4ODg0fQ.5NuwYhSuPgG59F_YYWl17ew_KVnTT6_jd0hh4lgaYkk';
+const SUPABASE_URL = 'https://ygkabspwygckxioqmewk.supabase.co';
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 function ChatPage() {
-  const [messages, setMessages] = useState([
-    {
-      key: 2,
-      author: 'FeQuaresma',
-      date: '29/01/2022',
-      content: 'Raules',
-    },
-    {
-      key: 1,
-      author: 'itodevio',
-      date: '29/01/2022',
-      content: 'Xesque',
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
   const [content, setContent] = useState();
   const router = useRouter();
 
+  useEffect(() => {
+    supabaseClient
+      .from('messages')
+      .select('*')
+      .order('key', { ascending: false })
+      .then(({ data }) => {
+        console.log('Dados da consulta:', data);
+        setMessages(data);
+      });
+  }, []);
+
   // [X] Limpar velue com enter
   // [ ] quebrar linhas para mensagens longas
-  // [ ] botão enviar para mobile
+  // [X] botão enviar para mobile
 
   return (
     <>
@@ -45,7 +48,7 @@ function ChatPage() {
                   <div className="flex items-end gap-2">
                     <img className="h-10 rounded-full" src={`https://github.com/${message.author}.png`} alt="" />
                     <span className="text-lg">{message.author}</span>
-                    <span className="text-sm text-gray-400">{message.date}</span>
+                    <span className="text-sm text-gray-400">{message.created_at}</span>
                   </div>
                   <div>
                     <span className="text-xl">{message.content}</span>
@@ -58,16 +61,23 @@ function ChatPage() {
             className="flex items-center"
             onSubmit={(e) => {
               e.preventDefault();
-              const date = new Date();
-              setMessages((old) => [
-                {
-                  key: old.length + 1,
-                  author: 'FeQuaresma',
-                  date: date.toLocaleString('pt-BR'),
-                  content,
-                },
-                ...old,
-              ]);
+              // const date = new Date();
+
+              const newMessage = {
+                author: 'FeQuaresma',
+                content,
+              };
+
+              supabaseClient
+                .from('messages')
+                .insert([newMessage])
+                .then(({ data }) => {
+                  console.log('criando mensagem: ', data);
+                  setMessages((old) => [
+                    data[0],
+                    ...old,
+                  ]);
+                });
               setContent('');
               console.log(messages);
             }}

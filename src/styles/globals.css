@@ -20,10 +20,35 @@ body {
     padding: 0;
     box-sizing: border-box;
     font-family: 'Poppins', sans-serif !important;
+    scrollbar-width: thin;
+    scrollbar-color: blue orange;
+}
+
+input {
+    border:none;
+    background-image:none;
+    background-color:transparent;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    outline: none;
 }
 
 @media (min-width: 340px) { 
     body{
         background-size: cover;
 } 
+}
+
+*::-webkit-scrollbar {
+  width: 12px;               /* width of the entire scrollbar */
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;        /* color of the tracking area */
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgb(17 24 39);    /* color of the scroll thumb */
+  border-radius: 20px;       /* roundness of the scroll thumb */
 }

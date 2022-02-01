@@ -30,7 +30,7 @@ function HomePage() {
           <div className="flex flex-col gap-2">
             <input
               type="text"
-              className="p-2"
+              className="p-2 bg-white rounded"
               value={username}
               onChange={(e) => {
                 console.log('O usuário digitou', e.target.value);
@@ -38,12 +38,13 @@ function HomePage() {
                 const valor = e.target.value;
                 // Trocar o valor da varíavel
                 // através do React e avise quem precisa
-                setUsername(valor);
+                setUsername(valor.trim());
               }}
             />
             <button
               type="submit"
               className="bg-teal-800 hover:bg-teal-600 text-white rounded p-2"
+              disabled={username === ''}
             >
               Entrar
             </button>

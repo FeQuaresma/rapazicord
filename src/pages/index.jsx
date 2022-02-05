@@ -5,7 +5,7 @@ import Layout from '../components/shared/layout';
 
 function HomePage() {
   // const username = 'peas'
-  const [username, setUsername] = useState('FeQuaresma');
+  const [username, setUsername] = useState('');
   const router = useRouter();
 
   return (
@@ -18,7 +18,7 @@ function HomePage() {
           onSubmit={(e) => {
             console.log('Alguém submeteu o form');
             e.preventDefault(); // faz com que pare de regarregar a pagina
-            router.push('/chat'); // vai para a pagina chat sem recarregar
+            router.push(`/chat?username=${username}`); // vai para a pagina chat sem recarregar
             // window.location.href = '/chat';
           }}
           className="flex flex-col justify-center gap-10 p-6"
@@ -51,7 +51,15 @@ function HomePage() {
           </div>
         </form>
         <div className="flex flex-col gap-2 bg-gray-700 p-2 rounded items-center">
-          <img className="rounded-full max-h-[10rem] max-w-[10rem]" src={`https://github.com/${username}.png`} alt="" />
+          <img
+            className="rounded-full max-h-[10rem] max-w-[10rem]"
+            alt=""
+            src={`https://github.com/${username}.png`}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = 'https://github.com/github.png';
+            }}
+          />
           <span className="text-white bg-gray-900 p-2 text-center rounded text-sm">{username}</span>
         </div>
       </Layout>

@@ -2,8 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import Head from 'next/head';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { Layout, Header } from '../components/shared';
-import lTrim from '../components/shared/ltrim';
+import { Layout, Header, lTrim } from '../components/shared';
 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzY3Mjg4NCwiZXhwIjoxOTU5MjQ4ODg0fQ.5NuwYhSuPgG59F_YYWl17ew_KVnTT6_jd0hh4lgaYkk';
 const SUPABASE_URL = 'https://ygkabspwygckxioqmewk.supabase.co';
@@ -13,16 +12,73 @@ function ChatPage() {
   const [messages, setMessages] = useState([]);
   const [content, setContent] = useState();
   const router = useRouter();
+  // const [userLogged, setUserLogged] = useState(router.query.username);
+  const userLogged = router.query.username;
 
+  function listenNewMessages(addNewMessage) {
+    return supabaseClient
+      .from('messages')
+      .on('INSERT', (liveListen) => {
+        addNewMessage(liveListen.new);
+      })
+      .subscribe();
+  }
+
+  function handleNewMessages(mensagem) {
+    if (mensagem !== undefined) {
+      // console.log(userLogged, mensagem.author);
+      if (userLogged !== mensagem.author) {
+        setMessages((old) => [
+          mensagem,
+          ...old,
+        ]);
+      }
+      console.log({ mensagem });
+      console.log('userLogged ', userLogged);
+      console.log('mensagem.author ', mensagem.author);
+      return;
+    }
+
+    const date = '2022-02-04';
+    const newMessage = {
+      key: messages[0].key + 1,
+      author: userLogged,
+      content,
+      created_at: date,
+    };
+    setContent('');
+    setMessages((old) => [
+      newMessage,
+      ...old,
+    ]);
+
+    supabaseClient
+      .from('messages')
+      .insert([newMessage])
+      .then(({ data }) => {
+        console.log('criando mensagem: ', data);
+        // console.log(data);
+      })
+      .catch((e) => console.log(e));
+    // console.log(messages);
+  }
+  // estou perdendo o valor da variável no useEffect
   useEffect(() => {
     supabaseClient
       .from('messages')
       .select('*')
       .order('key', { ascending: false })
       .then(({ data }) => {
-        console.log('Dados da consulta:', data);
+        // console.log('Dados da consulta:', data);
         setMessages(data);
       });
+    listenNewMessages((liveMessage) => {
+      console.log('liveMessage.author', liveMessage.author);
+      console.log('userLogged', userLogged);
+      if (liveMessage.author !== userLogged) {
+        handleNewMessages(liveMessage);
+      }
+    });
   }, []);
 
   // [X] Limpar velue com enter
@@ -46,7 +102,15 @@ function ChatPage() {
               messages.map((message) => (
                 <div key={message.key} className="flex flex-col hover:bg-gray-800 text-white rounded p-4 gap-3">
                   <div className="flex items-end gap-2">
-                    <img className="h-10 rounded-full" src={`https://github.com/${message.author}.png`} alt="" />
+                    <img
+                      className="h-10 rounded-full"
+                      src={`https://github.com/${message.author}.png`}
+                      alt=""
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = 'https://github.com/github.png';
+                      }}
+                    />
                     <span className="text-lg">{message.author}</span>
                     <span className="text-sm text-gray-400">{message.created_at}</span>
                   </div>
@@ -61,25 +125,7 @@ function ChatPage() {
             className="flex items-center"
             onSubmit={(e) => {
               e.preventDefault();
-              // const date = new Date();
-
-              const newMessage = {
-                author: 'FeQuaresma',
-                content,
-              };
-
-              supabaseClient
-                .from('messages')
-                .insert([newMessage])
-                .then(({ data }) => {
-                  console.log('criando mensagem: ', data);
-                  setMessages((old) => [
-                    data[0],
-                    ...old,
-                  ]);
-                });
-              setContent('');
-              console.log(messages);
+              handleNewMessages();
             }}
           >
             <input
@@ -89,7 +135,7 @@ function ChatPage() {
               value={content}
               onChange={(e) => {
                 setContent(lTrim(e.target.value));
-                console.log(e.target.value.length);
+                // console.log(e.target.value.length);
               }}
             />
             <button

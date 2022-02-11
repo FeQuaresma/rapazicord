@@ -19,7 +19,7 @@ function ChatPage() {
   const [messages, setMessages] = useState<Array<IMessage>>([]);
   const [content, setContent] = useState<string>();
   const router = useRouter();
-  const [user, setUser] = useState<string>(router.query?.username.toString());
+  const [user, setUser] = useState<string>(router.query?.username?.toString());
   // const [userLogged, setUserLogged] = useState(router.query.username);
   // const userLogged = router.query.username;
 
@@ -88,7 +88,7 @@ function ChatPage() {
       }
     });
     if (router.query?.username) {
-      setUser(router.query?.username.toString());
+      setUser(router.query?.username?.toString());
     }
     console.log('router.query?.username ', router.query?.username);
   }, [router.query?.username]);

@@ -1,7 +1,7 @@
 import Head from 'next/head';
-import { useState } from 'react';
+import { ReactEventHandler, SyntheticEvent, useState } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '../components/shared/layout';
+import { Layout } from '../components/shared';
 
 function HomePage() {
   // const username = 'peas'
@@ -32,6 +32,7 @@ function HomePage() {
               type="text"
               className="p-2 bg-white rounded"
               value={username}
+              placeholder="Entre com seu GitHub..."
               onChange={(e) => {
                 console.log('O usuário digitou', e.target.value);
                 // onde ta o valor?
@@ -48,6 +49,7 @@ function HomePage() {
             >
               Entrar
             </button>
+            
           </div>
         </form>
         <div className="flex flex-col gap-2 bg-gray-700 p-2 rounded items-center">
@@ -55,9 +57,9 @@ function HomePage() {
             className="rounded-full max-h-[10rem] max-w-[10rem]"
             alt=""
             src={`https://github.com/${username}.png`}
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = 'https://github.com/github.png';
+            onError={(e: SyntheticEvent<HTMLImageElement, Event>) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = 'https://github.com/github.png';
             }}
           />
           <span className="text-white bg-gray-900 p-2 text-center rounded text-sm">{username}</span>

@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import Head from 'next/head';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, SyntheticEvent } from 'react';
 import { useRouter } from 'next/router';
 import { Layout, Header, lTrim } from '../components/shared';
 
@@ -8,14 +8,22 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5v
 const SUPABASE_URL = 'https://ygkabspwygckxioqmewk.supabase.co';
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-function ChatPage() {
-  const [messages, setMessages] = useState([]);
-  const [content, setContent] = useState();
-  const router = useRouter();
-  // const [userLogged, setUserLogged] = useState(router.query.username);
-  const userLogged = router.query.username;
+interface IMessage {
+  key: number,
+  author: string,
+  content: string,
+  created_at: string,
+};
 
-  function listenNewMessages(addNewMessage) {
+function ChatPage() {
+  const [messages, setMessages] = useState<Array<IMessage>>([]);
+  const [content, setContent] = useState<string>();
+  const router = useRouter();
+  const [user, setUser] = useState<string>(router.query?.username.toString());
+  // const [userLogged, setUserLogged] = useState(router.query.username);
+  // const userLogged = router.query.username;
+
+  function listenNewMessages(addNewMessage: Function) {
     return supabaseClient
       .from('messages')
       .on('INSERT', (liveListen) => {
@@ -24,17 +32,17 @@ function ChatPage() {
       .subscribe();
   }
 
-  function handleNewMessages(mensagem) {
+  function handleNewMessages(mensagem?: IMessage) {
     if (mensagem !== undefined) {
       // console.log(userLogged, mensagem.author);
-      if (userLogged !== mensagem.author) {
+      if (user !== mensagem.author) {
         setMessages((old) => [
           mensagem,
           ...old,
         ]);
       }
       console.log({ mensagem });
-      console.log('userLogged ', userLogged);
+      console.log('userLogged ', user);
       console.log('mensagem.author ', mensagem.author);
       return;
     }
@@ -42,7 +50,7 @@ function ChatPage() {
     const date = '2022-02-04';
     const newMessage = {
       key: messages[0].key + 1,
-      author: userLogged,
+      author: user,
       content,
       created_at: date,
     };
@@ -58,8 +66,8 @@ function ChatPage() {
       .then(({ data }) => {
         console.log('criando mensagem: ', data);
         // console.log(data);
-      })
-      .catch((e) => console.log(e));
+      }, (e) => console.log(e)
+      )
     // console.log(messages);
   }
   // estou perdendo o valor da variável no useEffect
@@ -72,14 +80,18 @@ function ChatPage() {
         // console.log('Dados da consulta:', data);
         setMessages(data);
       });
-    listenNewMessages((liveMessage) => {
+    listenNewMessages((liveMessage: IMessage) => {
       console.log('liveMessage.author', liveMessage.author);
-      console.log('userLogged', userLogged);
-      if (liveMessage.author !== userLogged) {
+      console.log('userLogged', user);
+      if (liveMessage.author !== user) {
         handleNewMessages(liveMessage);
       }
     });
-  }, []);
+    if (router.query?.username) {
+      setUser(router.query?.username.toString());
+    }
+    console.log('router.query?.username ', router.query?.username);
+  }, [router.query?.username]);
 
   // [X] Limpar velue com enter
   // [ ] quebrar linhas para mensagens longas
@@ -106,16 +118,16 @@ function ChatPage() {
                       className="h-10 rounded-full"
                       src={`https://github.com/${message.author}.png`}
                       alt=""
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = 'https://github.com/github.png';
+                      onError={(e: SyntheticEvent<HTMLImageElement, Event>) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = 'https://github.com/github.png';
                       }}
                     />
                     <span className="text-lg">{message.author}</span>
                     <span className="text-sm text-gray-400">{message.created_at}</span>
                   </div>
                   <div>
-                    <span className="text-xl">{message.content}</span>
+                    <span className="text-xs-">{message.content}</span>
                   </div>
                 </div>
               ))

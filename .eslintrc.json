@@ -23,6 +23,14 @@
         "no-console": "off",
         "react/prop-types": "off",
         "react/jsx-props-no-spreading": "off",
-        "linebreak-style": "off"
+        "linebreak-style": "off",
+        "react/jsx-filename-extension": [
+            1,
+            {
+                "extensions": [".jsx", ".tsx", ".js", ".ts"]
+            }
+        ],
+        "import/extensions" : "off",
+        "import/no-unresolved" : "off"
     }
 }

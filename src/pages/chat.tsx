@@ -1,30 +1,26 @@
-import { createClient } from '@supabase/supabase-js';
 import Head from 'next/head';
-import { useState, useEffect, SyntheticEvent } from 'react';
+import { useState, useEffect, SyntheticEvent, useCallback } from 'react';
 import { useRouter } from 'next/router';
+import { DateTime } from 'luxon';
 import { Layout, Header, lTrim } from '../components/shared';
-
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzY3Mjg4NCwiZXhwIjoxOTU5MjQ4ODg0fQ.5NuwYhSuPgG59F_YYWl17ew_KVnTT6_jd0hh4lgaYkk';
-const SUPABASE_URL = 'https://ygkabspwygckxioqmewk.supabase.co';
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+import supabase from '../config/supabase';
+import getFreeId from '../lib/db';
 
 interface IMessage {
   key: number,
   author: string,
   content: string,
   created_at: string,
-};
+}
 
 function ChatPage() {
   const [messages, setMessages] = useState<Array<IMessage>>([]);
   const [content, setContent] = useState<string>();
   const router = useRouter();
   const [user, setUser] = useState<string>(router.query?.username?.toString());
-  // const [userLogged, setUserLogged] = useState(router.query.username);
-  // const userLogged = router.query.username;
 
-  function listenNewMessages(addNewMessage: Function) {
-    return supabaseClient
+  function listenNewMessages(addNewMessage: (msg: IMessage) => void) {
+    return supabase
       .from('messages')
       .on('INSERT', (liveListen) => {
         addNewMessage(liveListen.new);
@@ -32,70 +28,59 @@ function ChatPage() {
       .subscribe();
   }
 
-  function handleNewMessages(mensagem?: IMessage) {
+  const handleNewMessages = useCallback(async (mensagem?: IMessage, contentNewMessage?: string) => {
     if (mensagem !== undefined) {
-      // console.log(userLogged, mensagem.author);
       if (user !== mensagem.author) {
         setMessages((old) => [
           mensagem,
           ...old,
         ]);
       }
-      console.log({ mensagem });
-      console.log('userLogged ', user);
-      console.log('mensagem.author ', mensagem.author);
       return;
     }
 
-    const date = '2022-02-04';
+    /* const date = DateTime.now().setZone('America/Sao_Paulo').toFormat('yyyy-MM-dd'); */
+    const date = DateTime.now().setZone('America/Sao_Paulo').toISO();
+    const keyGen = await getFreeId('messages');
     const newMessage = {
-      key: messages[0].key + 1,
+      key: Number(keyGen),
       author: user,
-      content,
+      content: contentNewMessage,
       created_at: date,
     };
-    setContent('');
     setMessages((old) => [
       newMessage,
       ...old,
     ]);
 
-    supabaseClient
+    supabase
       .from('messages')
       .insert([newMessage])
-      .then(({ data }) => {
-        console.log('criando mensagem: ', data);
-        // console.log(data);
-      }, (e) => console.log(e)
-      )
-    // console.log(messages);
-  }
-  // estou perdendo o valor da variável no useEffect
+      .then(() => {
+        console.log();
+      }, (e) => console.log(e));
+    /* Qual é a necessidade do .then()?
+     .then(({ data }) => {
+      console.log(data);
+    }, (e) => console.log(e)); */
+  }, [user]);
   useEffect(() => {
-    supabaseClient
-      .from('messages')
-      .select('*')
-      .order('key', { ascending: false })
-      .then(({ data }) => {
-        // console.log('Dados da consulta:', data);
-        setMessages(data);
-      });
-    listenNewMessages((liveMessage: IMessage) => {
-      console.log('liveMessage.author', liveMessage.author);
-      console.log('userLogged', user);
-      if (liveMessage.author !== user) {
-        handleNewMessages(liveMessage);
-      }
-    });
     if (router.query?.username) {
+      supabase
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .then(({ data }) => {
+          setMessages(data);
+        });
+      listenNewMessages((liveMessage: IMessage) => {
+        if (liveMessage.author !== router.query.username) {
+          handleNewMessages(liveMessage);
+        }
+      });
       setUser(router.query?.username?.toString());
     }
-    console.log('router.query?.username ', router.query?.username);
-  }, [router.query?.username]);
-
-  // [X] Limpar velue com enter
-  // [ ] quebrar linhas para mensagens longas
-  // [X] botão enviar para mobile
+  }, [router.query?.username, handleNewMessages]);
 
   return (
     <>
@@ -109,7 +94,7 @@ function ChatPage() {
           bTitle="Logout"
         />
         <div className="flex flex-col gap-5 bg-gray-700 p-7 rounded w-[60vh] h-[50vh] justify-end">
-          <div className="flex flex-col-reverse gap-5 overflow-y-scroll">
+          <div className="flex flex-col-reverse gap-5 overflow-y-scroll break-words">
             {
               messages.map((message) => (
                 <div key={message.key} className="flex flex-col hover:bg-gray-800 text-white rounded p-4 gap-3">
@@ -124,10 +109,10 @@ function ChatPage() {
                       }}
                     />
                     <span className="text-lg">{message.author}</span>
-                    <span className="text-sm text-gray-400">{message.created_at}</span>
+                    <span className="text-sm text-gray-400">{DateTime.fromISO(message.created_at).toFormat('dd/MM/yyyy hh:mm')}</span>
                   </div>
                   <div>
-                    <span className="text-xs-">{message.content}</span>
+                    <span>{message.content}</span>
                   </div>
                 </div>
               ))
@@ -137,7 +122,8 @@ function ChatPage() {
             className="flex items-center"
             onSubmit={(e) => {
               e.preventDefault();
-              handleNewMessages();
+              handleNewMessages(undefined, content);
+              setContent('');
             }}
           >
             <input
@@ -147,7 +133,6 @@ function ChatPage() {
               value={content}
               onChange={(e) => {
                 setContent(lTrim(e.target.value));
-                // console.log(e.target.value.length);
               }}
             />
             <button

@@ -5,8 +5,6 @@ module.exports = {
   ],
   important: true,
   jit: true,
-  theme: {
-    extend: {},
-  },
+  theme: { extend: {} },
   plugins: [],
 };

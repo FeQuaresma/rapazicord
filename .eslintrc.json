@@ -1,4 +1,5 @@
 {
+    "parser": "@typescript-eslint/parser",
     "env": {
         "browser": true,
         "es2021": true,
@@ -6,7 +7,9 @@
     },
     "extends": [
         "plugin:react/recommended",
-        "airbnb"
+        "airbnb",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
     ],
     "parserOptions": {
         "ecmaFeatures": {
@@ -16,9 +19,14 @@
         "sourceType": "module"
     },
     "plugins": [
-        "react"
+        "react",
+        "react-hooks",
+        "@typescript-eslint"
     ],
     "rules": {
+        "no-constant-condition": "off",
+        "max-len": "off",
+        "no-await-in-loop": "off",
         "react/react-in-jsx-scope": "off",
         "no-console": "off",
         "react/prop-types": "off",
@@ -31,6 +39,13 @@
             }
         ],
         "import/extensions" : "off",
-        "import/no-unresolved" : "off"
+        "import/no-unresolved" : "off",
+        "react-hooks/exhaustive-deps": "warn",
+        "object-curly-newline": ["warn", {
+            "ObjectExpression": { "multiline": true, "minProperties": 5 },
+            "ObjectPattern": { "multiline": true, "minProperties": 3 },
+            "ImportDeclaration": "never",
+            "ExportDeclaration": { "multiline": true, "minProperties": 3 }
+        }]
     }
 }

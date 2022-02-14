@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { ReactEventHandler, SyntheticEvent, useState } from 'react';
+import { SyntheticEvent, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Layout } from '../components/shared';
 
@@ -49,7 +49,6 @@ function HomePage() {
             >
               Entrar
             </button>
-            
           </div>
         </form>
         <div className="flex flex-col gap-2 bg-gray-700 p-2 rounded items-center">
